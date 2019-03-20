@@ -1,5 +1,4 @@
-#include<functional>
-#include<gazebo/gazebo.hh>
+#include<gazebo_plugins/gazebo_ros_utils.h>
 #include<gazebo/physics/physics.hh>
 #include<gazebo/common/common.hh>
 #include<ignition/math/Vector3.hh>
@@ -15,12 +14,12 @@ namespace gazebo
       public: 
          AckermanSteer();
          ~AckermanSteer();
-         void Load(physics::ModelPtr _parent, sdf::ElementPtr /*_sdf*/);
+         void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf);
          void OnUpdate();
       private: 
          physics::ModelPtr model;                // Pointer to the model
          event::ConnectionPtr updateConnection;  // Pointer to the update event connection
-   
+         //GazeboRosPtr gazebo_ros_;
    };
    
    // Constructor
@@ -30,11 +29,12 @@ namespace gazebo
    AckermanSteer::~AckermanSteer() {}
 
    // Required Load method:
-   void AckermanSteer::Load(physics::ModelPtr _parent, sdf::ElementPtr /*_sdf*/)
+   void AckermanSteer::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
    {
       //store the pointer to the model
-      this->model= _parent;
-        
+      this->model = _model;
+      //gazebo_ros_ = GazeboRosPtr( new GazeboRos(_model, _sdf, "AckermanSteer") );
+             
       // Listen to the update event. This event is broadcast every 
       // simulation iteration.
       this->updateConnection = event::Events::ConnectWorldUpdateBegin(
