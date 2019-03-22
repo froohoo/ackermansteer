@@ -6,19 +6,16 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-#find_package(catkin REQUIRED COMPONENTS
-#   gazebo_ros)
-#find_package(roscpp)
-#find_package(gazebo REQUIRED)
 ## System dependencies are found with CMake's conventions
+
 #find_package(Boost REQUIRED COMPONENTS system)
 find_package(catkin REQUIRED
    COMPONENTS
+   gazebo
    gazebo_ros
+   gazebo_plugins
    roscpp
 )
-find_package(gazebo REQUIRED)
-
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -127,15 +124,15 @@ find_package(gazebo REQUIRED)
 ## Your package locations should be listed before other locations
 include_directories(
 include
-${catkin_INCLUDE_DIRS}
-${GAZEBO_INCLUDE_DIRS}
-${SDFormat_INCLUDE_DIRS}
+   ${catkin_INCLUDE_DIRS}
+   ${GAZEBO_INCLUDE_DIRS}
 )
 link_directories(
-   ${GAZEBO_LIBRARY_DIRS}
-   ${roscpp_LIBRARY_DIRS}
+   ${catkin_LIBRARY_DIRS}
+   ${GAZEBO_LIBRARIES}
 )
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
+
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
    SHARED
@@ -164,11 +161,8 @@ add_library(${PROJECT_NAME}
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
-   ${GAZEBO_LIBRARIES}
    ${catkin_LIBRARIES}
-   ${Boost_LIBRARIES}
-   /opt/ros/kinetic/lib/libgazebo_ros_utils.so 
-)
+   )
 
 #############
 ## Install ##
