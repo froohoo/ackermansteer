@@ -1,17 +1,24 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ackermansteer)
-
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-   gazebo_ros)
-find_package(gazebo REQUIRED)
+#find_package(catkin REQUIRED COMPONENTS
+#   gazebo_ros)
+#find_package(roscpp)
+#find_package(gazebo REQUIRED)
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED COMPONENTS system)
+find_package(catkin REQUIRED
+   COMPONENTS
+   gazebo_ros
+   roscpp
+)
+find_package(gazebo REQUIRED)
+
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -99,16 +106,18 @@ find_package(gazebo REQUIRED)
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
+#catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES model_push
 #  CATKIN_DEPENDS other_catkin_pkg
-   DEPENDS 
-      gazebo_ros
-   CATKIN_DEPENDS
-   INCLUDE_DIRS
-   LIBRARIES
-)
+#   DEPENDS 
+#      gazebo_ros
+#   CATKIN_DEPENDS
+#   INCLUDE_DIRS
+#   LIBRARIES
+#      gazebo_ros_utils
+#
+#)
 
 ###########
 ## Build ##
@@ -124,6 +133,7 @@ ${SDFormat_INCLUDE_DIRS}
 )
 link_directories(
    ${GAZEBO_LIBRARY_DIRS}
+   ${roscpp_LIBRARY_DIRS}
 )
 list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
 ## Declare a C++ library
@@ -155,6 +165,9 @@ add_library(${PROJECT_NAME}
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
    ${GAZEBO_LIBRARIES}
+   ${catkin_LIBRARIES}
+   ${Boost_LIBRARIES}
+   /opt/ros/kinetic/lib/libgazebo_ros_utils.so 
 )
 
 #############
@@ -204,3 +217,15 @@ target_link_libraries(${PROJECT_NAME}
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+macro(print_all_variables)
+   message(STATUS "print_all_variables-----------------------------------{")
+   get_cmake_property(_variableNames VARIABLES)
+   foreach(_variableName ${_variableNames})
+      message(STATUS "${_variableName}=${${_variableName}}")
+   endforeach()
+   message(STATUS "print_all_variables-----------------------------------{")
+endmacro()
+
+
+print_all_variables()

@@ -19,7 +19,7 @@ namespace gazebo
       private: 
          physics::ModelPtr model;                // Pointer to the model
          event::ConnectionPtr updateConnection;  // Pointer to the update event connection
-         //GazeboRosPtr gazebo_ros_;
+         GazeboRosPtr gazebo_ros_;
    };
    
    // Constructor
@@ -33,7 +33,7 @@ namespace gazebo
    {
       //store the pointer to the model
       this->model = _model;
-      //gazebo_ros_ = GazeboRosPtr( new GazeboRos(_model, _sdf, "AckermanSteer") );
+      gazebo_ros_ = GazeboRosPtr( new GazeboRos(_model, _sdf, "AckermanSteer") );
              
       // Listen to the update event. This event is broadcast every 
       // simulation iteration.
