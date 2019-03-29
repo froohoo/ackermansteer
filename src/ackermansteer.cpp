@@ -46,16 +46,17 @@ namespace gazebo
          double update_rate_;
          double update_period_;
 
-         double drive_p_ = 10.0;
+         double drive_p_ = 1.0;
          double drive_i_ = 0.0;
          double drive_d_ = 0.0;
          double drive_imax_ = 10.0;
          double drive_imin_ = -10.0;
-         double steer_p_ = 100.;
-         double steer_i_ = 2.0;
-         double steer_d_ = 15.0;
+         double steer_p_ = 4.0;
+         double steer_i_ = 0.1;
+         double steer_d_ = .05;
          double steer_imax_ = 1.0;
          double steer_imin_ = -1.0;
+         double steer_max_effort_ = 20.0;
          double steer_init_angle_ = 0.393;
 
 
@@ -164,30 +165,29 @@ namespace gazebo
       if (step_time > update_period_){
          for(int i=0; i<4; i++){
             double steer_angle_curr = steer_joints_[i]->GetAngle(X).Radian();
-            double steer_max_effort = 100.0;
             double steer_error = steer_angle_curr - steer_target_angles_[i] ;
             double steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
-            if (steer_cmd_effort > steer_max_effort) steer_cmd_effort = steer_max_effort;
-            if (steer_cmd_effort < -steer_max_effort) steer_cmd_effort = -steer_max_effort;
+            if (steer_cmd_effort > steer_max_effort_) steer_cmd_effort = steer_max_effort_;
+            if (steer_cmd_effort < -steer_max_effort_) steer_cmd_effort = -steer_max_effort_;
             steer_joints_[i]->SetForce(X, steer_cmd_effort);
             //steer_joints_[i]->SetPosition(X, 0.3); // X is steer angle for Steer Joints
             //steer_joints_[i]->SetPosition(Y, 1.0);
             //steer_joints_[i]->SetPosition(Z, 1.0);
             //drive_joints_[i]->Update();
             //steer_joints_[i]->Update();
-         double _pe, _ie, _de;
-         double pGain = steer_PIDs_[i].GetPGain();
-         steer_PIDs_[i].GetErrors(_pe, _ie, _de);
-         if (ros_debug){
-         ROS_INFO("Steer Joints %i", i); 
-         ROS_INFO("\tCurrent angle: %f \n", steer_angle_curr) ;
-         ROS_INFO("\tTarget angle: %f \n", steer_target_angles_[i]) ;
-         ROS_INFO("\tAngle Error: %f \n", steer_error) ;
-         ROS_INFO("\tEffort: %f \n", steer_cmd_effort) ;
-         ROS_INFO("\tP Gain: %f\n", pGain);
-         ROS_INFO("\tP error: %f ", _pe);
-         ROS_INFO("\tI error: %f ", _ie);
-         ROS_INFO("\tD error: %f ", _de);
+            double _pe, _ie, _de;
+            double pGain = steer_PIDs_[i].GetPGain();
+            steer_PIDs_[i].GetErrors(_pe, _ie, _de);
+            if (true){
+            ROS_INFO("Steer Joints %i", i); 
+            ROS_INFO("\tCurrent angle: %f \n", steer_angle_curr) ;
+            ROS_INFO("\tTarget angle: %f \n", steer_target_angles_[i]) ;
+            ROS_INFO("\tAngle Error: %f \n", steer_error) ;
+            ROS_INFO("\tEffort: %f \n", steer_cmd_effort) ;
+            ROS_INFO("\tP Gain: %f\n", pGain);
+            ROS_INFO("\tP error: %f ", _pe);
+            ROS_INFO("\tI error: %f ", _ie);
+            ROS_INFO("\tD error: %f ", _de);
          }
 
          }
