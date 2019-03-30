@@ -1,0 +1,360 @@
+<?xml version='1.0'?>
+
+<robot name="steerbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find steerbot)/urdf/steerbot.specs" />
+    <xacro:include filename="$(find steerbot)/urdf/steerbot.gazebo"/>    
+    <link name="steerbot_footprint"/>
+
+    <joint name="steerbot_footprint_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="steerbot_footprint"/>
+        <child link="steerbot_chassis"/>
+    </joint>
+    
+    <link name="steerbot_chassis">
+        <pose> 0 0 0 0 0 0</pose>
+        <inertial>
+            <mass value="${chassis_mas}"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="${1./12.*(chassis_wid_sq + chassis_hgt_sq)}" 
+                     iyy="${1./12.*(chassis_wid_sq + chassis_len_sq)}" 
+                     izz="${1./12.*(chassis_hgt_sq + chassis_len_sq)}" 
+                     ixy="0.0" ixz="0.0" iyz="0.0" 
+                     />
+         </inertial>
+
+        <collision name="chassis_collision">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${chassis_len} ${chassis_wid} ${chassis_hgt}'/>
+            </geometry>
+        </collision>
+
+        <visual name="chassis_visual">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${chassis_len} ${chassis_wid} ${chassis_hgt}'/>
+            </geometry>
+        </visual>
+
+    </link>
+
+    <!-- FRONT WHEELS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\-->
+    <link name="front_left_wheel">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <mass value="${wheel_mas}"/>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <inertia
+                ixx='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                iyy='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                izz='${.5 * wheel_mas *  wheel_rad_sq}' 
+                ixy="0" ixz="0" iyz="0"
+                />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </visual>
+    </link>
+  
+    <link name="front_right_wheel">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <mass value="${wheel_mas}"/>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <inertia
+                ixx='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                iyy='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                izz='${.5 * wheel_mas *  wheel_rad_sq}' 
+                ixy="0" ixz="0" iyz="0"
+                />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </visual>
+    </link>
+
+
+    <!-- Strut dims are derived from the dims of the wheel they carry -->
+    <link name="front_left_strut">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </collision>
+
+        <inertial> 
+            <mass value="${strut_mas}"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia 
+                     ixx="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     iyy="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     izz="${1./12. * strut_mas * (2 * wheel_wid_sq)}" 
+                     ixy="0.0" ixz="0.0" iyz="0.0" 
+            />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </visual>
+    </link>
+
+    <link name="front_right_strut">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </collision>
+
+        <inertial> 
+            <mass value="${strut_mas}"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia 
+                     ixx="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     iyy="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     izz="${1./12. * strut_mas * (2 * wheel_wid_sq)}" 
+                     ixy="0.0" ixz="0.0" iyz="0.0" 
+                     />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </visual>
+    </link>
+
+
+    <joint name="front_left_wheel_bearing" type="continuous">
+        <origin xyz="0 ${wheel_wid+.002} 0" rpy="0 0 0"/>
+        <child link="front_left_wheel"/>
+        <parent link="front_left_strut"/>
+        <axis xyz="0 1 0" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+  
+    <joint name="front_left_steer_bearing" type="continuous">
+        <!--
+            The wheel_rad/3.0 gives some space between strut and chassis that
+            is defined in terms of strut dims, which is in turn defined in 
+            terms of wheel dims 
+        -->
+        <origin xyz='${wheel_base/2.0} ${chassis_wid/2.0+wheel_rad/3.0} 0' rpy="0 0 0"/>
+        <child link="front_left_strut"/>
+        <parent link="steerbot_chassis"/>
+        <axis xyz="0 0 1" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+
+     <joint name="front_right_wheel_bearing" type="continuous">
+        <origin xyz="0 -${wheel_wid+.002} 0" rpy="0 0 0"/>
+        <child link="front_right_wheel"/>
+        <parent link="front_right_strut"/>
+        <axis xyz="0 1 0" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+  
+    <joint name="front_right_steer_bearing" type="continuous">
+        <!--
+            The wheel_rad/3.0 gives some space between strut and chassis that
+            is defined in terms of strut dims, which is in turn defined in 
+            terms of wheel dims 
+        -->
+        <origin xyz='${wheel_base/2.0} -${chassis_wid/2.0+wheel_rad/3.0} 0' rpy="0 0 0"/>
+        <child link="front_right_strut"/>
+        <parent link="steerbot_chassis"/>
+        <axis xyz="0 0 1" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+
+    <!-- REAR WHEELS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\-->
+    <link name="rear_left_wheel">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <mass value="${wheel_mas}"/>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <inertia
+                ixx='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                iyy='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                izz='${.5 * wheel_mas *  wheel_rad_sq}' 
+                ixy="0" ixz="0" iyz="0"
+                />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </visual>
+    </link>
+  
+    <link name="rear_right_wheel">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <mass value="${wheel_mas}"/>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <inertia
+                ixx='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                iyy='${wheel_mas * (1./12.*wheel_wid_sq + 0.25*wheel_rad_sq)}'
+                izz='${.5 * wheel_mas *  wheel_rad_sq}' 
+                ixy="0" ixz="0" iyz="0"
+                />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_wid}"/>
+            </geometry>
+        </visual>
+    </link>
+
+
+    <!-- Strut dims are derived from the dims of the wheel they carry -->
+    <link name="rear_left_strut">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </collision>
+
+        <inertial> 
+            <mass value="${strut_mas}"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia 
+                     ixx="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     iyy="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     izz="${1./12. * strut_mas * (2 * wheel_wid_sq)}" 
+                     ixy="0.0" ixz="0.0" iyz="0.0" 
+                     />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </visual>
+    </link>
+
+    <link name="rear_right_strut">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </collision>
+
+        <inertial> 
+            <mass value="${strut_mas}"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia 
+                     ixx="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     iyy="${1./12. * strut_mas * (wheel_rad_sq + wheel_wid_sq)}" 
+                     izz="${1./12. * strut_mas * (2 * wheel_wid_sq)}" 
+                     ixy="0.0" ixz="0.0" iyz="0.0" 
+                     />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size='${wheel_wid} ${wheel_wid} ${wheel_rad}'/>
+            </geometry>
+        </visual>
+    </link>
+
+
+    <joint name="rear_left_wheel_bearing" type="continuous">
+        <origin xyz="0 ${wheel_wid+.002} 0" rpy="0 0 0"/>
+        <child link="rear_left_wheel"/>
+        <parent link="rear_left_strut"/>
+        <axis xyz="0 1 0" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+  
+    <joint name="rear_left_steer_bearing" type="continuous">
+        <!--
+            The wheel_rad/3.0 gives some space between strut and chassis that
+            is defined in terms of strut dims, which is in turn defined in 
+            terms of wheel dims 
+        -->
+        <origin xyz='-${wheel_base/2.0} ${chassis_wid/2.0+wheel_rad/3.0} 0' rpy="0 0 0"/>
+        <child link="rear_left_strut"/>
+        <parent link="steerbot_chassis"/>
+        <axis xyz="0 0 1" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+
+    <joint name="rear_right_wheel_bearing" type="continuous">
+        <origin xyz="0 -${wheel_wid+.002} 0" rpy="0 0 0"/>
+        <child link="rear_right_wheel"/>
+        <parent link="rear_right_strut"/>
+        <axis xyz="0 1 0" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+  
+    <joint name="rear_right_steer_bearing" type="continuous">
+        <!--
+            The wheel_rad/3.0 gives some space between strut and chassis that
+            is defined in terms of strut dims, which is in turn defined in 
+            terms of wheel dims 
+        -->
+        <origin xyz='-${wheel_base/2.0} -${chassis_wid/2.0+wheel_rad/3.0} 0' rpy="0 0 0"/>
+        <child link="rear_right_strut"/>
+        <parent link="steerbot_chassis"/>
+        <axis xyz="0 0 1" rpy="0 0 0"/>
+        <limit effort="1000" velocity="1000"/>
+        <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
+    </joint>
+
+
+</robot>
+

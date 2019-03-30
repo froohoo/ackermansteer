@@ -22,7 +22,7 @@ namespace gazebo
       public: 
          AckermanSteer();
          ~AckermanSteer();
-         void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf);
+         void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
          void OnUpdate();
       private: 
          common::Time gazeboTime();
@@ -46,18 +46,18 @@ namespace gazebo
          double update_rate_;
          double update_period_;
 
-         double drive_p_ = 1.0;
-         double drive_i_ = 0.0;
-         double drive_d_ = 0.0;
-         double drive_imax_ = 10.0;
-         double drive_imin_ = -10.0;
-         double steer_p_ = 4.0;
-         double steer_i_ = 0.1;
-         double steer_d_ = .05;
-         double steer_imax_ = 1.0;
-         double steer_imin_ = -1.0;
-         double steer_max_effort_ = 20.0;
-         double steer_init_angle_ = 0.393;
+         double drive_p_;
+         double drive_i_;
+         double drive_d_;
+         double drive_imax_;
+         double drive_imin_;
+         double steer_p_;
+         double steer_i_;
+         double steer_d_;
+         double steer_imax_;
+         double steer_imin_;
+         double steer_max_effort_;
+         double steer_init_angle_;
 
 
          common::Time last_update_time_; 
@@ -76,12 +76,12 @@ namespace gazebo
    AckermanSteer::~AckermanSteer() {}
 
    // Required Load method:
-   void AckermanSteer::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
+   void AckermanSteer::Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf)
    {
       //store the pointer to the Model
-      this->model = _model;
+      this->model = _parent;
       // Create a new GazeboRos instance
-      gazebo_ros_ = GazeboRosPtr( new GazeboRos(_model, _sdf, "AckermanSteer") );
+      gazebo_ros_ = GazeboRosPtr( new GazeboRos(_parent, _sdf, "AckermanSteer") );
       
       //Check to see if ros is initialized.Will just print a ROS_FATAL and return if not.
       gazebo_ros_->isInitialized();
@@ -107,7 +107,18 @@ namespace gazebo
       gazebo_ros_->getParameter<double> ( wheel_accel_, "wheelAcceleration", 0.0 );
       gazebo_ros_->getParameter<double> ( wheel_torque_, "wheelTorque", 5.0 );
       gazebo_ros_->getParameter<double> ( update_rate_, "updateRate", 100.0);
-
+      gazebo_ros_->getParameter<double> ( steer_p_, "steer_p", 1.0);
+      gazebo_ros_->getParameter<double> ( steer_i_, "steer_i", 0.0);
+      gazebo_ros_->getParameter<double> ( steer_d_, "steer_d", 0.0);
+      gazebo_ros_->getParameter<double> ( steer_imax_, "steer_imax", 1.0);
+      gazebo_ros_->getParameter<double> ( steer_imin_, "steer_imin", 1.0);
+      gazebo_ros_->getParameter<double> ( steer_max_effort_, "steer_max_effort", 20.0);
+      gazebo_ros_->getParameter<double> ( steer_init_angle_, "steer_init_angle", 0.0);
+      gazebo_ros_->getParameter<double> ( drive_p_, "drive_p", 1.0);
+      gazebo_ros_->getParameter<double> ( drive_i_, "drive_i", 0.0);
+      gazebo_ros_->getParameter<double> ( drive_d_, "drive_d", 0.0);
+      gazebo_ros_->getParameter<double> ( drive_imax_, "drive_imax", 1.0);
+      gazebo_ros_->getParameter<double> ( drive_imin_, "drive_imin", 1.0);
 
 
       // create dictionary with string keys, and OdomSource values. 
@@ -170,11 +181,6 @@ namespace gazebo
             if (steer_cmd_effort > steer_max_effort_) steer_cmd_effort = steer_max_effort_;
             if (steer_cmd_effort < -steer_max_effort_) steer_cmd_effort = -steer_max_effort_;
             steer_joints_[i]->SetForce(X, steer_cmd_effort);
-            //steer_joints_[i]->SetPosition(X, 0.3); // X is steer angle for Steer Joints
-            //steer_joints_[i]->SetPosition(Y, 1.0);
-            //steer_joints_[i]->SetPosition(Z, 1.0);
-            //drive_joints_[i]->Update();
-            //steer_joints_[i]->Update();
             double _pe, _ie, _de;
             double pGain = steer_PIDs_[i].GetPGain();
             steer_PIDs_[i].GetErrors(_pe, _ie, _de);

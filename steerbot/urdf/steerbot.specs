@@ -1,0 +1,50 @@
+<?xml version='1.0'?>
+
+
+<robot name="steerbot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- Mechanical Dimensions -->
+<xacro:property name="chassis_wid" 
+    value="0.20" />
+<xacro:property name="chassis_len"
+    value="0.30" />
+<xacro:property name="chassis_hgt"
+    value="0.05" />
+<xacro:property name="chassis_mas"
+    value="2.0"  />
+<xacro:property name="wheel_rad"
+    value="0.05"/>
+<xacro:property name="wheel_wid"
+    value="0.02"/>
+<xacro:property name="wheel_mas"
+    value="0.1" />
+<xacro:property name="strut_mas"
+    value="0.1" />
+<xacro:property name="wheel_base"
+    value="0.25"/>
+
+<!-- Equipment Properties and limitations -->
+<xacro:property name="max_steer_angle"
+    value="0.5"  />
+<xacro:property name="bearing_friction"
+    value="0.001"/>
+<xacro:property name="bearing_damping"
+    value="0.001"/>
+
+
+
+<!-- Nice to have values, all derived from above -->
+<xacro:property name="chassis_wid_sq"
+    value="${chassis_wid * chassis_wid}"/>
+<xacro:property name="chassis_len_sq"
+    value="${chassis_len * chassis_len}"/>
+<xacro:property name="chassis_hgt_sq"
+    value="${chassis_hgt * chassis_hgt}"/>
+<xacro:property name="wheel_rad_sq"
+    value="${wheel_rad * wheel_rad}"    />
+ <xacro:property name="wheel_wid_sq"
+    value="${wheel_wid * wheel_wid}"    />
+
+
+</robot>
+

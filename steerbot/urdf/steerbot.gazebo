@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<robot>
+
+   <gazebo>
+      <plugin name="ackermansteer" filename="libackermansteer.so">
+         <commandTopic>cmd_vel</commandTopic>
+         <odometryTopic>odom</odometryTopic>
+         <robotBaseFrame>base_footprint</robotBaseFrame>
+         <publishWheelTF>false</publishWheelTF>
+         <publishOdomTF>true</publishOdomTF>
+         <wheelSeparation>0.3</wheelSeparation>
+         <wheelDiameter>0.15</wheelDiameter>
+         <wheelAcceleration>0.0</wheelAcceleration>
+         <wheelTorque>5.0</wheelTorque>
+         <updateRate>10.0</updateRate>
+  
+         <!-- Wheel Joints -->
+         <FR_steerJoint>front_right_steer_bearing</FR_steerJoint>
+         <FR_driveJoint>front_right_wheel_bearing</FR_driveJoint>
+         <FL_steerJoint>front_left_steer_bearing</FL_steerJoint>
+         <FL_driveJoint>front_left_wheel_bearing</FL_driveJoint>
+         <RL_steerJoint>rear_left_steer_bearing</RL_steerJoint>
+         <RL_driveJoint>rear_left_wheel_bearing</RL_driveJoint>
+         <RR_steerJoint>rear_right_steer_bearing</RR_steerJoint>
+         <RR_driveJoint>rear_right_wheel_bearing</RR_driveJoint>
+
+         <!--PID settings - - - - - - - - - - - - - - - - - - - -
+              p      -    proportional gain
+              i      -    intergral gain
+              d      -    derivative gain
+              imax   -    anti windup max
+              imin   -    anti windup min
+         - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+         <!-- Wheel Velocity PID settings -->
+         <drive_p>1.0</drive_p>
+         <drive_i>0.0</drive_i>
+         <drive_d>0.0</drive_d>
+         <drive_imax>10.0</drive_imax>
+         <drive_imin>-10.0</drive_imin>
+
+         <!-- Steering PID settings -->
+         <steer_p>4.0</steer_p>
+         <steer_i>0.1</steer_i>
+         <steer_d>.05</steer_d>
+         <steer_imax>1.0</steer_imax>
+         <steer_imin>-1.0</steer_imin>
+         <steer_max_effort>20.0</steer_max_effort>
+         <steer_init_angle>0.3</steer_init_angle>
+
+      </plugin>
+    </gazebo>
+
+
+</robot>
+

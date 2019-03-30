@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <!--robot pose -->
+    <arg name="x" default="0"/>
+    <arg name="y" default="0"/>
+    <arg name="z" default="0"/>
+    <arg name="roll" default="0"/>
+    <arg name="pitch" default="0"/>
+    <arg name="yaw" default="0"/>
+
+    <!--send urdf to param server -->
+    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find steerbot)/urdf/steerbot.xacro'"/>
+    
+    <!--send ackerman plugin params to param server-->
+    <rosparam file="$(find steerbot)/config/ackermansteer.yaml" command="load" ns="/steerbot"/>
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="false"/>
+    </node>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" 
+        type="robot_state_publisher" respawn="false" output="screen"/>
+
+    <!-- Launch Gazebo World -->
+ 
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="paused" value="true"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="debug" value="false"/>
+        <arg name="gui" value="true"/>
+        <arg name="world_name" value='$(find steerbot)/world/world.world'/>
+    </include>
+    <!-- Spawn My Robot -->
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+        args="-urdf -param robot_description -model steerbot
+        -x $(arg x) -y $(arg y) -z $(arg z)
+        -R $(arg roll) -P $(arg pitch) -Y $(arg yaw)"/>
+
+    <node name="rviz" pkg="rviz" type="rviz" respawn="false"/>
+</launch>
+
