@@ -3,7 +3,9 @@
 #include<gazebo/common/common.hh>
 #include<ignition/math/Vector3.hh>
 #include<string>
-
+#include<geometry_msgs/Pose2D.h>
+#include<geometry_msgs/Twist.h>
+#include<ros/callback_queue.h>
 namespace gazebo
 {
    // Wheel order follows cartestion quadrant numbering
@@ -60,6 +62,16 @@ namespace gazebo
          double steer_max_effort_;
          double steer_init_angle_;
 
+         double x_;
+         double rot_;
+         
+         ros::Subscriber cmd_vel_subscriber_;
+         ros::CallbackQueue queue_;
+         boost::thread callback_queue_thread_;
+         boost::mutex lock;
+         void QueueThread();
+         void cmdVelCallback ( const geometry_msgs::Twist::ConstPtr& cmd_msg);
+         bool alive_;
 
          common::Time last_update_time_; 
 
@@ -143,15 +155,28 @@ namespace gazebo
          drive_PIDs_[i].Init(drive_p_, drive_i_, drive_d_, drive_imax_, drive_imin_);
       }
 
-      
-
-
+     
       // Initialize update Rate logic
       if (update_rate_ > 0.0) {
          update_period_ = 1.0/update_rate_;
       } else {
          update_period_ = 1.0;
       }
+     
+      //ROS PUB-SUB 
+      ROS_INFO_NAMED("AckermanSteer", "%s: Try to subuscribe to %s", gazebo_ros_->info(), command_topic_.c_str());
+      ros::SubscribeOptions so =
+        ros::SubscribeOptions::create<geometry_msgs::Twist>(command_topic_, 1, 
+             boost::bind(&AckermanSteer::cmdVelCallback, this, _1), 
+             ros::VoidPtr(), &queue_);
+      
+      cmd_vel_subscriber_ = gazebo_ros_->node()->subscribe(so);
+      ROS_INFO_NAMED("AckermanSteer", "%s: Subscribe to %s", gazebo_ros_->info(), command_topic_.c_str());
+
+      this->callback_queue_thread_ = 
+         boost::thread ( boost::bind ( &AckermanSteer::QueueThread, this) );
+
+
       last_update_time_ = this->gazeboTime(); 
       // Listen to the update event. This event is broadcast every 
       // simulation iteration.
@@ -176,17 +201,19 @@ namespace gazebo
       common::Time current_time = gazeboTime();
       common::Time step_time = current_time - last_update_time_;
       if (step_time > update_period_){
+         steer_target_angles_.assign(4,rot_);
          for(int i=0; i<4; i++){
             double steer_angle_curr = steer_joints_[i]->GetAngle(X).Radian();
             double steer_error = steer_angle_curr - steer_target_angles_[i] ;
             double steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
             if (steer_cmd_effort > steer_max_effort_) steer_cmd_effort = steer_max_effort_;
             if (steer_cmd_effort < -steer_max_effort_) steer_cmd_effort = -steer_max_effort_;
+
             steer_joints_[i]->SetForce(X, steer_cmd_effort);
-            double _pe, _ie, _de;
-            double pGain = steer_PIDs_[i].GetPGain();
-            steer_PIDs_[i].GetErrors(_pe, _ie, _de);
             if (debug_){
+               double _pe, _ie, _de;
+               double pGain = steer_PIDs_[i].GetPGain();
+               steer_PIDs_[i].GetErrors(_pe, _ie, _de);
                ROS_INFO("Steer Joints %i", i); 
                ROS_INFO("\tCurrent angle: %f \n", steer_angle_curr) ;
                ROS_INFO("\tTarget angle: %f \n", steer_target_angles_[i]) ;
@@ -202,6 +229,22 @@ namespace gazebo
 
          last_update_time_ = current_time;
       }
+   }
+
+   void AckermanSteer::QueueThread()
+   {
+      static const double timeout = 0.01;
+
+      while (alive_ && gazebo_ros_->node()->ok() ) {
+      queue_.callAvailable ( ros::WallDuration (timeout) );
+      }
+   }
+
+   void AckermanSteer::cmdVelCallback ( const geometry_msgs::Twist::ConstPtr& cmd_msg)
+   {
+      boost::mutex::scoped_lock scoped_lock (lock);
+      x_ = cmd_msg->linear.x;
+      rot_ = cmd_msg->angular.z;
    }
 
 
