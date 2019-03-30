@@ -1,10 +1,6 @@
 # ackermansteer
 
 
-# ackermansteer
-
-
-
 ### Notes to self / Learnings:
 * SetPosition worked abysmally to set wheel angles. I'm assuming because the resulting discontinuity requires temporary interuption of the simulation... not sure need to research.
 * Ackermann is actually spelled with 2 n's.
