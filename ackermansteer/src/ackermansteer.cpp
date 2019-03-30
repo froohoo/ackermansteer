@@ -87,6 +87,7 @@ namespace gazebo
       gazebo_ros_->isInitialized();
       // Function template call to getParameter, which retrieves params passed in _sdf 
       // (T & _value, const char *_tag_name, const T &_default)
+    
       gazebo_ros_->getParameter<std::string> ( drive_joint_names_[FL], "FL_driveJoint", "front_left_wheel_bearing"); 
       gazebo_ros_->getParameter<std::string> ( drive_joint_names_[FR], "FR_driveJoint", "front_right_wheel_bearing");
       gazebo_ros_->getParameter<std::string> ( drive_joint_names_[RL], "RL_driveJoint", "rear_left_wheel_bearing");
