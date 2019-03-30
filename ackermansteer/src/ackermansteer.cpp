@@ -36,6 +36,7 @@ namespace gazebo
          std::string robot_base_frame_;
          std::string drive_joint_names_[4];
          std::string steer_joint_names_[4]; 
+         bool debug_;
          bool publishWheelTF_;
          bool publishOdomTF_;
          bool publishWheelJointState_;
@@ -87,7 +88,7 @@ namespace gazebo
       gazebo_ros_->isInitialized();
       // Function template call to getParameter, which retrieves params passed in _sdf 
       // (T & _value, const char *_tag_name, const T &_default)
-    
+      gazebo_ros_->getParameterBoolean ( debug_, "debug", false);
       gazebo_ros_->getParameter<std::string> ( drive_joint_names_[FL], "FL_driveJoint", "front_left_wheel_bearing"); 
       gazebo_ros_->getParameter<std::string> ( drive_joint_names_[FR], "FR_driveJoint", "front_right_wheel_bearing");
       gazebo_ros_->getParameter<std::string> ( drive_joint_names_[RL], "RL_driveJoint", "rear_left_wheel_bearing");
@@ -185,17 +186,17 @@ namespace gazebo
             double _pe, _ie, _de;
             double pGain = steer_PIDs_[i].GetPGain();
             steer_PIDs_[i].GetErrors(_pe, _ie, _de);
-            if (true){
-            ROS_INFO("Steer Joints %i", i); 
-            ROS_INFO("\tCurrent angle: %f \n", steer_angle_curr) ;
-            ROS_INFO("\tTarget angle: %f \n", steer_target_angles_[i]) ;
-            ROS_INFO("\tAngle Error: %f \n", steer_error) ;
-            ROS_INFO("\tEffort: %f \n", steer_cmd_effort) ;
-            ROS_INFO("\tP Gain: %f\n", pGain);
-            ROS_INFO("\tP error: %f ", _pe);
-            ROS_INFO("\tI error: %f ", _ie);
-            ROS_INFO("\tD error: %f ", _de);
-         }
+            if (debug_){
+               ROS_INFO("Steer Joints %i", i); 
+               ROS_INFO("\tCurrent angle: %f \n", steer_angle_curr) ;
+               ROS_INFO("\tTarget angle: %f \n", steer_target_angles_[i]) ;
+               ROS_INFO("\tAngle Error: %f \n", steer_error) ;
+               ROS_INFO("\tEffort: %f \n", steer_cmd_effort) ;
+               ROS_INFO("\tP Gain: %f\n", pGain);
+               ROS_INFO("\tP error: %f ", _pe);
+               ROS_INFO("\tI error: %f ", _ie);
+               ROS_INFO("\tD error: %f ", _de);
+            }
 
          }
 

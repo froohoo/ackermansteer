@@ -4,6 +4,7 @@
 
    <gazebo>
       <plugin name="ackermansteer" filename="libackermansteer.so">
+         <debug>false</debug>
          <commandTopic>cmd_vel</commandTopic>
          <odometryTopic>odom</odometryTopic>
          <robotBaseFrame>base_footprint</robotBaseFrame>
@@ -13,7 +14,7 @@
          <wheelDiameter>0.15</wheelDiameter>
          <wheelAcceleration>0.0</wheelAcceleration>
          <wheelTorque>5.0</wheelTorque>
-         <updateRate>10.0</updateRate>
+         <updateRate>50.0</updateRate>
   
          <!-- Wheel Joints -->
          <FR_steerJoint>front_right_steer_bearing</FR_steerJoint>
