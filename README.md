@@ -1,7 +1,7 @@
 # ackermansteer
 
 ### A video of current progress...
-[Current Progress](InitialResults.gif)
+![Current Progress](InitialResults.gif)
 
 ### Notes to self / Learnings:
 * SetPosition worked abysmally to set wheel angles. I'm assuming because the resulting discontinuity requires temporary interuption of the simulation... not sure need to research.
