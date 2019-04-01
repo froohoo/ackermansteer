@@ -2,10 +2,11 @@
 #include<gazebo/physics/physics.hh>
 #include<gazebo/common/common.hh>
 #include<ignition/math/Vector3.hh>
-#include<string>
 #include<geometry_msgs/Pose2D.h>
 #include<geometry_msgs/Twist.h>
 #include<ros/callback_queue.h>
+#include<string>
+#include<cmath>
 namespace gazebo
 {
    // Wheel order follows cartestion quadrant numbering
@@ -27,7 +28,9 @@ namespace gazebo
          void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
          void OnUpdate();
       private: 
-         common::Time gazeboTime();
+         common::Time GazeboTime();
+         std::vector<double> GetAckAngles(double phi);
+         
          physics::ModelPtr model;                // Pointer to the model
          event::ConnectionPtr updateConnection_;  // Pointer to the update event connection
          GazeboRosPtr gazebo_ros_;
@@ -43,6 +46,7 @@ namespace gazebo
          bool publishOdomTF_;
          bool publishWheelJointState_;
          double wheel_separation_;
+         double wheelbase_;
          double wheel_diameter_;
          double wheel_accel_;
          double wheel_torque_;
@@ -120,6 +124,7 @@ namespace gazebo
       gazebo_ros_->getParameterBoolean ( publishOdomTF_, "publishOdomTF", true);
       gazebo_ros_->getParameterBoolean ( publishWheelJointState_, "publishWheelJointState", false);
       gazebo_ros_->getParameter<double> ( wheel_separation_, "wheelSeparation", 0.34 );
+      gazebo_ros_->getParameter<double> ( wheelbase_, "wheelbase", 0.5);
       gazebo_ros_->getParameter<double> ( wheel_diameter_, "wheelDiameter", 0.15 );
       gazebo_ros_->getParameter<double> ( wheel_accel_, "wheelAcceleration", 0.0 );
       gazebo_ros_->getParameter<double> ( wheel_torque_, "wheelTorque", 5.0 );
@@ -193,14 +198,14 @@ namespace gazebo
          boost::thread ( boost::bind ( &AckermanSteer::QueueThread, this) );
 
 
-      last_update_time_ = this->gazeboTime(); 
+      last_update_time_ = this->GazeboTime(); 
       // Listen to the update event. This event is broadcast every 
       // simulation iteration.
       this->updateConnection_ = event::Events::ConnectWorldUpdateBegin(
             std::bind(&AckermanSteer::OnUpdate, this));
    }
    
-   common::Time AckermanSteer::gazeboTime() 
+   common::Time AckermanSteer::GazeboTime() 
    {
 #if GAZEBO_MAJOR_VERSION >= 8
       return model->GetWorld()->SimTime();
@@ -209,16 +214,30 @@ namespace gazebo
 #endif
    }
 
+   std::vector<double> AckermanSteer::GetAckAngles(double phi)
+   {
+      std::vector<double> phi_angles;
+      double numerator = 2.0 * wheelbase_ * sin(phi);
+      phi_angles.assign(4, 0.0);
+      phi_angles[FL] = atan2( numerator,
+         (2.0*wheelbase_*cos(phi) - wheel_separation_*sin(phi)) );
+      phi_angles[FR] = atan2( numerator,
+         (2.0*wheelbase_*cos(phi) + wheel_separation_*sin(phi)) );
+      return phi_angles;
+   }
+
    //Called by the world update start event
    void AckermanSteer::OnUpdate()
    {
-      double steer_ang_curr, steer_error, steer_cmd_effort;
-      double drive_vel_curr, drive_error, drive_cmd_effort; 
-      common::Time current_time = gazeboTime();
+      common::Time current_time = GazeboTime();
       common::Time step_time = current_time - last_update_time_;
       if (step_time > update_period_){
-         steer_target_angles_[FR] = rot_;
-         steer_target_angles_[FL] = rot_;
+         double steer_ang_curr, steer_error, steer_cmd_effort;
+         double drive_vel_curr, drive_error, drive_cmd_effort;
+         std::vector<double> ack_steer_angles = GetAckAngles(rot_);
+
+         steer_target_angles_[FR] = ack_steer_angles[FR];
+         steer_target_angles_[FL] = ack_steer_angles[FL];
          steer_target_angles_[RR] = 0.0;
          steer_target_angles_[RL] = 0.0;
 

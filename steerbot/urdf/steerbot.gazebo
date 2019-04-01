@@ -10,12 +10,15 @@
          <robotBaseFrame>base_footprint</robotBaseFrame>
          <publishWheelTF>false</publishWheelTF>
          <publishOdomTF>true</publishOdomTF>
-         <wheelSeparation>0.3</wheelSeparation>
          <wheelDiameter>0.15</wheelDiameter>
          <wheelAcceleration>0.0</wheelAcceleration>
          <wheelTorque>5.0</wheelTorque>
-         <updateRate>50.0</updateRate>
-  
+         <updateRate>100.0</updateRate>
+
+         <!-- Wheel Placement -->
+         <wheelbase>0.25</wheelbase>
+         <wheelSeparation>0.3</wheelSeparation>
+         
          <!-- Wheel Joints -->
          <FR_steerJoint>front_right_steer_bearing</FR_steerJoint>
          <FR_driveJoint>front_right_wheel_bearing</FR_driveJoint>
@@ -35,20 +38,20 @@
          - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
 
          <!-- Wheel Velocity PID settings -->
-         <drive_p>0.1</drive_p>
-         <drive_i>0.01</drive_i>
-         <drive_d>0.01</drive_d>
+         <drive_p>.05</drive_p>
+         <drive_i>0.0</drive_i>
+         <drive_d>0.0</drive_d>
          <drive_imax>1.0</drive_imax>
          <drive_imin>-1.0</drive_imin>
-         <drive_max_effort>5.0</drive_max_effort>
+         <drive_max_effort>20.0</drive_max_effort>
 
          <!-- Steering PID settings -->
          <steer_p>4.0</steer_p>
          <steer_i>0.1</steer_i>
-         <steer_d>.05</steer_d>
+         <steer_d>0.15</steer_d>
          <steer_imax>1.0</steer_imax>
          <steer_imin>-1.0</steer_imin>
-         <steer_max_effort>20.0</steer_max_effort>
+         <steer_max_effort>100.0</steer_max_effort>
          <steer_init_angle>0.3</steer_init_angle>
 
       </plugin>
