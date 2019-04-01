@@ -30,6 +30,7 @@ namespace gazebo
       private: 
          common::Time GazeboTime();
          std::vector<double> GetAckAngles(double phi);
+         std::vector<double> GetDiffSpeeds(double vel, double phi);
          
          physics::ModelPtr model;                // Pointer to the model
          event::ConnectionPtr updateConnection_;  // Pointer to the update event connection
@@ -226,6 +227,15 @@ namespace gazebo
       return phi_angles;
    }
 
+   std::vector<double> AckermanSteer::GetDiffSpeeds(double vel, double phi)
+   {
+      std::vector<double> wheel_speeds;
+      wheel_speeds.assign(4, 0.0);
+      wheel_speeds[RL] = vel * ( 1 - (wheel_separation_ * tan(phi) ) / 2.0);
+      wheel_speeds[RR] = vel * ( 1 + (wheel_separation_ * tan(phi) ) / 2.0);
+      return wheel_speeds;
+   }
+
    //Called by the world update start event
    void AckermanSteer::OnUpdate()
    {
@@ -235,18 +245,23 @@ namespace gazebo
          double steer_ang_curr, steer_error, steer_cmd_effort;
          double drive_vel_curr, drive_error, drive_cmd_effort;
          std::vector<double> ack_steer_angles = GetAckAngles(rot_);
+         std::vector<double> ack_drive_velocities = GetDiffSpeeds(x_, rot_);
 
          steer_target_angles_[FR] = ack_steer_angles[FR];
          steer_target_angles_[FL] = ack_steer_angles[FL];
          steer_target_angles_[RR] = 0.0;
          steer_target_angles_[RL] = 0.0;
 
-         drive_target_velocities_.assign(4,x_);
+         drive_target_velocities_[FR] = 0.0;
+         drive_target_velocities_[FL] = 0.0;
+         drive_target_velocities_[RR] = ack_drive_velocities[RR];
+         drive_target_velocities_[RL] = ack_drive_velocities[RL];
+
          for(int i=0; i<4; i++){
             steer_ang_curr = steer_joints_[i]->GetAngle(X).Radian();
             steer_error = steer_ang_curr - steer_target_angles_[i];
             steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
-            drive_vel_curr = drive_joints_[i]->GetVelocity(Z); 
+            drive_vel_curr = drive_joints_[i]->GetVelocity(Z) * wheel_diameter_; 
             drive_error = drive_vel_curr - drive_target_velocities_[i];
             switch(i) {
                case FL:
