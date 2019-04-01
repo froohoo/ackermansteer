@@ -54,6 +54,8 @@ namespace gazebo
          double drive_d_;
          double drive_imax_;
          double drive_imin_;
+         double drive_init_velocity_;
+         double drive_cmd_max_;
          double steer_p_;
          double steer_i_;
          double steer_d_;
@@ -61,6 +63,7 @@ namespace gazebo
          double steer_imin_;
          double steer_max_effort_;
          double steer_init_angle_;
+         double steer_cmd_max_;
 
          double x_;
          double rot_;
@@ -79,7 +82,7 @@ namespace gazebo
 
          std::vector<physics::JointPtr> steer_joints_, drive_joints_;
          std::vector<common::PID> steer_PIDs_, drive_PIDs_;
-         std::vector<double> steer_target_angles_;
+         std::vector<double> steer_target_angles_, drive_target_velocities_;
    };
    
    // Constructor
@@ -126,13 +129,15 @@ namespace gazebo
       gazebo_ros_->getParameter<double> ( steer_d_, "steer_d", 0.0);
       gazebo_ros_->getParameter<double> ( steer_imax_, "steer_imax", 1.0);
       gazebo_ros_->getParameter<double> ( steer_imin_, "steer_imin", 1.0);
-      gazebo_ros_->getParameter<double> ( steer_max_effort_, "steer_max_effort", 20.0);
+      gazebo_ros_->getParameter<double> ( steer_cmd_max_, "steer_max_effort", 20.0);
       gazebo_ros_->getParameter<double> ( steer_init_angle_, "steer_init_angle", 0.0);
       gazebo_ros_->getParameter<double> ( drive_p_, "drive_p", 1.0);
       gazebo_ros_->getParameter<double> ( drive_i_, "drive_i", 0.0);
       gazebo_ros_->getParameter<double> ( drive_d_, "drive_d", 0.0);
       gazebo_ros_->getParameter<double> ( drive_imax_, "drive_imax", 1.0);
       gazebo_ros_->getParameter<double> ( drive_imin_, "drive_imin", 1.0);
+      gazebo_ros_->getParameter<double> ( drive_cmd_max_, "drive_max_effort", 1.0);
+      gazebo_ros_->getParameter<double> ( drive_init_velocity_, "drive_init_velocity", 0.0);
 
 
       // create dictionary with string keys, and OdomSource values. 
@@ -147,14 +152,25 @@ namespace gazebo
       drive_joints_.resize(4);
       steer_PIDs_.resize(4);
       drive_PIDs_.resize(4);
-      steer_target_angles_.assign(4,steer_init_angle_);
       for(int i=0; i < 4; i++){
          steer_joints_[i] = model->GetJoint( steer_joint_names_[i]);
          drive_joints_[i] = model->GetJoint( drive_joint_names_[i]);
-         steer_PIDs_[i].Init(steer_p_, steer_i_, steer_d_, steer_imax_, steer_imin_);
-         drive_PIDs_[i].Init(drive_p_, drive_i_, drive_d_, drive_imax_, drive_imin_);
+         steer_PIDs_[i].Init(steer_p_, steer_i_, steer_d_, steer_imax_, 
+               steer_imin_, steer_cmd_max_, -steer_cmd_max_);
+         drive_PIDs_[i].Init(drive_p_, drive_i_, drive_d_, drive_imax_, 
+               drive_imin_, drive_cmd_max_, -drive_cmd_max_);
+         switch(i){
+            case FL:
+            case FR:
+               steer_target_angles_.push_back(steer_init_angle_);
+               drive_target_velocities_.push_back(0.0);
+               break;
+            case RL:
+            case RR:
+               steer_target_angles_.push_back(0.0);
+               drive_target_velocities_.push_back(drive_init_velocity_);
+         }
       }
-
      
       // Initialize update Rate logic
       if (update_rate_ > 0.0) {
@@ -196,29 +212,58 @@ namespace gazebo
    //Called by the world update start event
    void AckermanSteer::OnUpdate()
    {
-      // Apply a small linear velocity to the model
-      // this->model->SetLinearVel(ignition::math::Vector3d(.3, 0, 0));
+      double steer_ang_curr, steer_error, steer_cmd_effort;
+      double drive_vel_curr, drive_error, drive_cmd_effort; 
       common::Time current_time = gazeboTime();
       common::Time step_time = current_time - last_update_time_;
       if (step_time > update_period_){
-         steer_target_angles_.assign(4,rot_);
-         for(int i=0; i<4; i++){
-            double steer_angle_curr = steer_joints_[i]->GetAngle(X).Radian();
-            double steer_error = steer_angle_curr - steer_target_angles_[i] ;
-            double steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
-            if (steer_cmd_effort > steer_max_effort_) steer_cmd_effort = steer_max_effort_;
-            if (steer_cmd_effort < -steer_max_effort_) steer_cmd_effort = -steer_max_effort_;
+         steer_target_angles_[FR] = rot_;
+         steer_target_angles_[FL] = rot_;
+         steer_target_angles_[RR] = 0.0;
+         steer_target_angles_[RL] = 0.0;
 
+         drive_target_velocities_.assign(4,x_);
+         for(int i=0; i<4; i++){
+            steer_ang_curr = steer_joints_[i]->GetAngle(X).Radian();
+            steer_error = steer_ang_curr - steer_target_angles_[i];
+            steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
+            drive_vel_curr = drive_joints_[i]->GetVelocity(Z); 
+            drive_error = drive_vel_curr - drive_target_velocities_[i];
+            switch(i) {
+               case FL:
+               case FR:
+                  drive_cmd_effort = 0.0;
+                  break;
+               case RL:
+               case RR:
+                  drive_cmd_effort = drive_PIDs_[i].Update(drive_error, step_time);
+            }
             steer_joints_[i]->SetForce(X, steer_cmd_effort);
+            drive_joints_[i]->SetForce(Z, drive_cmd_effort);
             if (debug_){
                double _pe, _ie, _de;
                double pGain = steer_PIDs_[i].GetPGain();
                steer_PIDs_[i].GetErrors(_pe, _ie, _de);
                ROS_INFO("Steer Joints %i", i); 
-               ROS_INFO("\tCurrent angle: %f \n", steer_angle_curr) ;
+               ROS_INFO("\tCurrent angle: %f \n", steer_ang_curr) ;
                ROS_INFO("\tTarget angle: %f \n", steer_target_angles_[i]) ;
                ROS_INFO("\tAngle Error: %f \n", steer_error) ;
                ROS_INFO("\tEffort: %f \n", steer_cmd_effort) ;
+               ROS_INFO("\tP Gain: %f\n", pGain);
+               ROS_INFO("\tP error: %f ", _pe);
+               ROS_INFO("\tI error: %f ", _ie);
+               ROS_INFO("\tD error: %f ", _de);
+            }
+            
+            if (debug_){
+               double _pe, _ie, _de;
+               double pGain = drive_PIDs_[i].GetPGain();
+               drive_PIDs_[i].GetErrors(_pe, _ie, _de);
+               ROS_INFO("Drive Joint %i", i); 
+               ROS_INFO("\tCurrent Vel: %f \n", drive_vel_curr) ;
+               ROS_INFO("\tTarget Vel: %f \n", drive_target_velocities_[i]) ;
+               ROS_INFO("\tVel Error: %f \n", drive_error) ;
+               ROS_INFO("\tEffort: %f \n", drive_cmd_effort) ;
                ROS_INFO("\tP Gain: %f\n", pGain);
                ROS_INFO("\tP error: %f ", _pe);
                ROS_INFO("\tI error: %f ", _ie);

@@ -35,11 +35,12 @@
          - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
 
          <!-- Wheel Velocity PID settings -->
-         <drive_p>1.0</drive_p>
-         <drive_i>0.0</drive_i>
-         <drive_d>0.0</drive_d>
-         <drive_imax>10.0</drive_imax>
-         <drive_imin>-10.0</drive_imin>
+         <drive_p>0.1</drive_p>
+         <drive_i>0.01</drive_i>
+         <drive_d>0.01</drive_d>
+         <drive_imax>1.0</drive_imax>
+         <drive_imin>-1.0</drive_imin>
+         <drive_max_effort>5.0</drive_max_effort>
 
          <!-- Steering PID settings -->
          <steer_p>4.0</steer_p>
