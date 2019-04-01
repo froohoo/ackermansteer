@@ -1,6 +1,8 @@
 # ackermansteer
 
-A gazebo plugin to implement ackerman steering angles on a 4 wheeled robot.
+A gazebo plugin to implement ackerman steering angles on a 4 wheeled robot. Note that this plugin just computes
+and sets the correct angles to minimize wheel slip. It does not simulate an actual Ackermann linkage setup. 
+Wheel angles and speeds are set using PID instances for both. 
 
 ### A video of current progress...
 ![Current Progress](InitialResults.gif)
