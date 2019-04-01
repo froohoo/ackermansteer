@@ -1,5 +1,7 @@
 # ackermansteer
 
+A gazebo plugin to implement ackerman steering angles on a 4 wheeled robot.
+
 ### A video of current progress...
 ![Current Progress](InitialResults.gif)
 
