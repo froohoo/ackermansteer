@@ -27,3 +27,7 @@ These equations work for all likely steering angles where -pi/2 < steering angle
 
 <img src="https://github.com/froohoo/ackermansteer/blob/master/SteerAngle.png" height="300">
 
+### Rear Diff Drive equations:
+
+
+
