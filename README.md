@@ -33,5 +33,5 @@ These equations work for all likely steering angles where -pi/2 < steering angle
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=V_{rearRight}&space;=&space;V_{target}&space;\left&space;[&space;1&space;&plus;&space;\left&space;(&space;\frac{WheelSpan&space;*&space;\tan(\phi)}{2}&space;\right&space;)&space;\right&space;]" target="_blank"><img src="https://latex.codecogs.com/gif.latex?V_{rearRight}&space;=&space;V_{target}&space;\left&space;[&space;1&space;&plus;&space;\left&space;(&space;\frac{WheelSpan&space;*&space;\tan(\phi)}{2}&space;\right&space;)&space;\right&space;]" title="V_{rearLeft} = V_{target} \left [ 1 + \left ( \frac{WheelSpan * \tan(\phi)}{2} \right ) \right ]" /></a>
 
-
+<img src="https://github.com/froohoo/ackermansteer/blob/master/DiffSpeed.png" height="300">
 
