@@ -23,4 +23,5 @@ Wheel angles and speeds are set using PID instances for both.
 
 These equations work as is for all input steering angles where -pi/2 < input angle < pi/2 and are shown below. When input angle is negaative, Right wheel is the inner wheel and Left wheel is inner both angles are negative but Right wheel has a greater angle since it tracks a circular path of smaller radius. Same logic applies to positive turns as can be seen in positive turns, left wheel has a greater angle than the right. As we approach 0 steer angle, both angles converge to 0. (This plot assumes wheelbase=Track=1).
 
-![Steering Angles](SteerAngle.png)
+<img src="https://github.com/froohoo/ackermansteer/blob/master/SteerAngle.png" height="300">
+
