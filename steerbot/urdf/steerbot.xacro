@@ -318,7 +318,7 @@
         <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
     </joint>
   
-    <joint name="rear_left_steer_bearing" type="continuous">
+    <joint name="rear_left_steer_bearing" type="fixed">
         <!--
             The wheel_rad/3.0 gives some space between strut and chassis that
             is defined in terms of strut dims, which is in turn defined in 
@@ -341,7 +341,7 @@
         <dynamics damping="${bearing_damping}" friction="${bearing_friction}"/>
     </joint>
   
-    <joint name="rear_right_steer_bearing" type="continuous">
+    <joint name="rear_right_steer_bearing" type="fixed">
         <!--
             The wheel_rad/3.0 gives some space between strut and chassis that
             is defined in terms of strut dims, which is in turn defined in 

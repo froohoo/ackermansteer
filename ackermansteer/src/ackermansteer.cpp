@@ -231,8 +231,10 @@ namespace gazebo
    {
       std::vector<double> wheel_speeds;
       wheel_speeds.assign(4, 0.0);
-      wheel_speeds[RL] = vel * ( 1 - (wheel_separation_ * tan(phi) ) / 2.0);
-      wheel_speeds[RR] = vel * ( 1 + (wheel_separation_ * tan(phi) ) / 2.0);
+      wheel_speeds[RL] = vel * (1.0 - (wheel_separation_ * tan(phi) ) / 
+            (2.0 * wheelbase_) );
+      wheel_speeds[RR] = vel * (1.0 + (wheel_separation_ * tan(phi) ) / 
+            (2.0 * wheelbase_) );
       return wheel_speeds;
    }
 
@@ -258,22 +260,21 @@ namespace gazebo
          drive_target_velocities_[RL] = ack_drive_velocities[RL];
 
          for(int i=0; i<4; i++){
-            steer_ang_curr = steer_joints_[i]->GetAngle(X).Radian();
-            steer_error = steer_ang_curr - steer_target_angles_[i];
-            steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
-            drive_vel_curr = drive_joints_[i]->GetVelocity(Z) * wheel_diameter_; 
-            drive_error = drive_vel_curr - drive_target_velocities_[i];
             switch(i) {
                case FL:
                case FR:
-                  drive_cmd_effort = 0.0;
+                  steer_ang_curr = steer_joints_[i]->GetAngle(X).Radian();
+                  steer_error = steer_ang_curr - steer_target_angles_[i];
+                  steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
+                  steer_joints_[i]->SetForce(X, steer_cmd_effort);
                   break;
                case RL:
                case RR:
+                  drive_vel_curr = drive_joints_[i]->GetVelocity(Z) * wheel_diameter_/2.0; 
+                  drive_error = drive_vel_curr - drive_target_velocities_[i];
                   drive_cmd_effort = drive_PIDs_[i].Update(drive_error, step_time);
+                  drive_joints_[i]->SetForce(Z, drive_cmd_effort);
             }
-            steer_joints_[i]->SetForce(X, steer_cmd_effort);
-            drive_joints_[i]->SetForce(Z, drive_cmd_effort);
             if (debug_){
                double _pe, _ie, _de;
                double pGain = steer_PIDs_[i].GetPGain();
