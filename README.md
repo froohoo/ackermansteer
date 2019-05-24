@@ -15,7 +15,7 @@ Wheel angles and speeds are both set using PID instances so some tuning will be 
 * If you get a `IGN_MASSMATRIX3_DEFAULT_TOLERANCE` error then you probably need to do a `apt-get install libignition-math2-dev`
 
 ### Steering angle equations:
-*(Plots created in [Desmos](https://www.desmos.com/calculator). Equations rendered by [Codecogs](https://www.codecogs.com/)*
+*(Plots created in [Desmos](https://www.desmos.com/calculator). Equations rendered by [Codecogs.](https://www.codecogs.com/) )*
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=Front&space;Left&space;Angle&space;=&space;\arctan&space;\left&space;[\frac{2.0&space;*&space;Wheelbase&space;*&space;sin(\phi&space;)}{2.0&space;*&space;Wheelbase&space;*&space;cos(\phi)&space;-&space;WheelSeparation&space;*&space;sin(\phi)}&space;\right&space;]" target="_blank"><img src="https://latex.codecogs.com/gif.latex?Front&space;Left&space;Angle&space;=&space;\arctan&space;\left&space;[\frac{2.0&space;*&space;Wheelbase&space;*&space;sin(\phi&space;)}{2.0&space;*&space;Wheelbase&space;*&space;cos(\phi)&space;-&space;WheelSeparation&space;*&space;sin(\phi)}&space;\right&space;]" title="Front Left Angle = \arctan \left [\frac{2.0 * Wheelbase * sin(\phi )}{2.0 * Wheelbase * cos(\phi) - WheelSeparation * sin(\phi)} \right ]" /></a>
     
