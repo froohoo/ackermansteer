@@ -7,7 +7,7 @@
          <debug>false</debug>
          <commandTopic>cmd_vel</commandTopic>
          <odometryTopic>odom</odometryTopic>
-         <robotBaseFrame>base_footprint</robotBaseFrame>
+         <robotBaseFrame>steerbot_footprint</robotBaseFrame>
          <publishWheelTF>false</publishWheelTF>
          <publishOdomTF>true</publishOdomTF>
          <wheelDiameter>0.15</wheelDiameter>
