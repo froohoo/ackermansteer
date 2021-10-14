@@ -33,6 +33,11 @@
 #include<string>
 #include<cmath>
 #include<vector>
+#include<tf/transform_broadcaster.h>
+#include <nav_msgs/Odometry.h>
+// Boost
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
 
 namespace gazebo {
 // Wheel order follows cartestion quadrant numbering
@@ -48,6 +53,7 @@ class AckermanSteer : public ModelPlugin {
     ~AckermanSteer();
     void Load(physics::ModelPtr _parent, sdf::ElementPtr _sdf);
     void OnUpdate();
+    void publishOdometry ( double step_time );
 
  private:
     common::Time GazeboTime();
@@ -95,7 +101,11 @@ class AckermanSteer : public ModelPlugin {
     double x_;
     double rot_;
 
+    //tf::TransformBroadcaster *transform_broadcaster_;
+
+    ros::Publisher odometry_publisher_;
     ros::Subscriber cmd_vel_subscriber_;
+    boost::shared_ptr<tf::TransformBroadcaster> transform_broadcaster_;
     ros::CallbackQueue queue_;
     boost::thread callback_queue_thread_;
     boost::mutex lock;
@@ -110,6 +120,9 @@ class AckermanSteer : public ModelPlugin {
     std::vector<physics::JointPtr> steer_joints_, drive_joints_;
     std::vector<common::PID> steer_PIDs_, drive_PIDs_;
     std::vector<double> steer_target_angles_, drive_target_velocities_;
+
+    
+    nav_msgs::Odometry odom_;
 };
 }  // namespace gazebo
 

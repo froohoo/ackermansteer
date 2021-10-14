@@ -5,18 +5,18 @@
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights 
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-* copies of the Software, and to permit persons to whom the Software is 
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
 *
-* The above copyright notice and this permission notice shall be included in all 
+* The above copyright notice and this permission notice shall be included in all
 * copies or substantial portions of the Software.
 
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. * IN NO EVENT SHALL THE
-* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 * SOFTWARE.
@@ -155,6 +155,9 @@ namespace gazebo {
       update_period_ = 1.0;
     }
 
+    transform_broadcaster_ = boost::shared_ptr<tf::TransformBroadcaster>(new tf::TransformBroadcaster());
+
+
     // ROS PUB-SUB
     ROS_INFO_NAMED("AckermanSteer", "%s: Try to subuscribe to %s",
           gazebo_ros_->info(), command_topic_.c_str());
@@ -167,9 +170,19 @@ namespace gazebo {
     ROS_INFO_NAMED("AckermanSteer", "%s: Subscribe to %s",
           gazebo_ros_->info(), command_topic_.c_str());
 
+    
+
+       // ----------------
+   if (publishOdomTF_)
+    {
+      odometry_publisher_ = gazebo_ros_->node()->advertise<nav_msgs::Odometry>(odometry_topic_, 1);
+      ROS_INFO_NAMED("diff_drive", "%s: Advertise odom on %s ", gazebo_ros_->info(), odometry_topic_.c_str());
+    }
+
     this->callback_queue_thread_ =
        boost::thread(boost::bind(&AckermanSteer::QueueThread, this));
-
+    
+    //----------------
 
     last_update_time_ = this->GazeboTime();
     // Listen to the update event. This event is broadcast every
@@ -187,6 +200,7 @@ namespace gazebo {
   }
 
   std::vector<double> AckermanSteer::GetAckAngles(double phi) {
+   //sboost::mutex::scoped_lock scoped_lock(lock);
     std::vector<double> phi_angles;
     double numerator = 2.0 * wheelbase_ * sin(phi);
     phi_angles.assign(4, 0.0);
@@ -198,6 +212,7 @@ namespace gazebo {
   }
 
   std::vector<double> AckermanSteer::GetDiffSpeeds(double vel, double phi) {
+   //boost::mutex::scoped_lock scoped_lock(lock);
     std::vector<double> wheel_speeds;
     wheel_speeds.assign(4, 0.0);
     wheel_speeds[RL] = vel * (1.0 - (wheel_separation_ * tan(phi) ) /
@@ -211,7 +226,14 @@ namespace gazebo {
   void AckermanSteer::OnUpdate() {
     common::Time current_time = GazeboTime();
     common::Time step_time = current_time - last_update_time_;
+    double seconds_since_last_update = ( current_time - last_update_time_ ).Double();
     if (step_time > update_period_) {
+      // EDIT -----
+      if ( publishOdomTF_ ) publishOdometry ( seconds_since_last_update );
+      //if ( publishWheelTF_ ) publishWheelTF();
+      //if ( publishWheelJointState_ ) publishWheelJointState();
+      // ----
+      //ROS_INFO("Update");
       double steer_ang_curr, steer_error, steer_cmd_effort;
       double drive_vel_curr, drive_error, drive_cmd_effort;
       std::vector<double> ack_steer_angles = GetAckAngles(rot_);
@@ -233,6 +255,8 @@ namespace gazebo {
             steer_error = steer_ang_curr - steer_target_angles_[i];
             steer_cmd_effort = steer_PIDs_[i].Update(steer_error, step_time);
             steer_joints_[i]->SetForce(X, steer_cmd_effort);
+            //printf("steer %f\n", steer_target_angles_[i]);
+            //steer_joints_[i]->SetAngle(X, steer_target_angles_[i]);
             break;
           case RL:
           case RR:
@@ -241,6 +265,8 @@ namespace gazebo {
             drive_error = drive_vel_curr - drive_target_velocities_[i];
             drive_cmd_effort = drive_PIDs_[i].Update(drive_error, step_time);
             drive_joints_[i]->SetForce(Z, drive_cmd_effort);
+            //printf("vel %f\n", drive_target_velocities_[i]);
+            //drive_joints_[i]->SetVelocity(Z, drive_target_velocities_[i] * 2.0 / wheel_diameter_);
         }
         if (debug_) {
           double _pe, _ie, _de;
@@ -288,7 +314,91 @@ namespace gazebo {
       boost::mutex::scoped_lock scoped_lock(lock);
       x_ = cmd_msg->linear.x;
       rot_ = cmd_msg->angular.z;
+      //printf("obtained vel, rot %f %f\n", x_, rot_);
+      //ROS_INFO("callback");
   }
+
+
+
+void AckermanSteer::publishOdometry ( double step_time )
+{
+
+    ros::Time current_time = ros::Time::now();
+    std::string odom_frame = gazebo_ros_->resolveTF ( odometry_frame_ );
+    std::string base_footprint_frame = gazebo_ros_->resolveTF ( robot_base_frame_ );
+
+    tf::Quaternion qt;
+    tf::Vector3 vt;
+
+    if ( odom_source_ == ENCODER ) {
+        ROS_INFO("ENCODER");
+        // getting data form encoder integration
+        qt = tf::Quaternion ( odom_.pose.pose.orientation.x, odom_.pose.pose.orientation.y, odom_.pose.pose.orientation.z, odom_.pose.pose.orientation.w );
+        vt = tf::Vector3 ( odom_.pose.pose.position.x, odom_.pose.pose.position.y, odom_.pose.pose.position.z );
+
+    }
+    if ( odom_source_ == WORLD ) {
+        // getting data from gazebo world
+#if GAZEBO_MAJOR_VERSION >= 8
+        ignition::math::Pose3d pose = model->WorldPose();
+#else
+        ignition::math::Pose3d pose = model->GetWorldPose().Ign();
+#endif
+        qt = tf::Quaternion ( pose.Rot().X(), pose.Rot().Y(), pose.Rot().Z(), pose.Rot().W() );
+        vt = tf::Vector3 ( pose.Pos().X(), pose.Pos().Y(), pose.Pos().Z() );
+
+        odom_.pose.pose.position.x = vt.x();
+        odom_.pose.pose.position.y = vt.y();
+        odom_.pose.pose.position.z = vt.z();
+
+        odom_.pose.pose.orientation.x = qt.x();
+        odom_.pose.pose.orientation.y = qt.y();
+        odom_.pose.pose.orientation.z = qt.z();
+        odom_.pose.pose.orientation.w = qt.w();
+
+        // get velocity in /odom frame
+        ignition::math::Vector3d linear;
+#if GAZEBO_MAJOR_VERSION >= 8
+        linear = model->WorldLinearVel();
+        odom_.twist.twist.angular.z = model->WorldAngularVel().Z();
+#else
+        linear = model->GetWorldLinearVel().Ign();
+        odom_.twist.twist.angular.z = model->GetWorldAngularVel().Ign().Z();
+#endif
+
+        // convert velocity to child_frame_id (aka base_footprint)
+        float yaw = pose.Rot().Yaw();
+        odom_.twist.twist.linear.x = cosf ( yaw ) * linear.X() + sinf ( yaw ) * linear.Y();
+        odom_.twist.twist.linear.y = cosf ( yaw ) * linear.Y() - sinf ( yaw ) * linear.X();
+    }
+
+    if (publishOdomTF_ == true){
+        tf::Transform base_footprint_to_odom ( qt, vt );
+        transform_broadcaster_->sendTransform (
+            tf::StampedTransform ( base_footprint_to_odom, current_time,
+                                   odom_frame, base_footprint_frame ) );
+    }
+
+
+    // set covariance
+    odom_.pose.covariance[0] = 0.00001;
+    odom_.pose.covariance[7] = 0.00001;
+    odom_.pose.covariance[14] = 1000000000000.0;
+    odom_.pose.covariance[21] = 1000000000000.0;
+    odom_.pose.covariance[28] = 1000000000000.0;
+    odom_.pose.covariance[35] = 0.001;
+
+
+    // set header
+    odom_.header.stamp = current_time;
+    odom_.header.frame_id = odom_frame;
+    odom_.child_frame_id = base_footprint_frame;
+
+    odometry_publisher_.publish ( odom_ );
+}
+
+
+
   // Register this plugin with the simulator
   GZ_REGISTER_MODEL_PLUGIN(AckermanSteer)
 
